@@ -1,4 +1,4 @@
-# WagglePlay 🎮
+# WagglePlay
 
 Lokálny herný systém inšpirovaný konzolou Nintendo Wii. **Počítač** je konzola, **telefón** je pohybový ovládač
 (gyroskop + akcelerometer). Všetko beží v lokálnej sieti, bez internetu a registrácie.
