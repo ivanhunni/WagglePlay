@@ -87,7 +87,7 @@ await Promise.all([once(httpServer, 'listening'), once(httpsServer, 'listening')
 
 // Vypíšeme adresy do terminálu.
 console.log(`
-  WagglePlay beží 🎮
+  WagglePlay beží
 
   Konzola (PC):      ${consoleUrl}
   Ovládač (telefón): ${controllerBaseUrl}/controller/
