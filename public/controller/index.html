@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- Stránka OVLÁDAČA – otvára sa v telefóne po naskenovaní QR kódu
+     (https://<IP-počítača>:3443/controller/?s=KÓD).
+     Má dve „obrazovky“: úvodnú (tlačidlo Pripojiť) a ovládač (tlačidlá A a B).
+     Naraz je viditeľná vždy iba jedna – prepína ich controller.js cez atribút `hidden`. -->
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <!-- Nastavenie pre mobil:
+       width=device-width       – šírka stránky = šírka displeja
+       initial-scale=1          – bez priblíženia
+       maximum-scale=1, user-scalable=no – zakáže priblíženie prstami (pri hraní by prekážalo)
+       viewport-fit=cover       – stránka využije aj oblasť pri výreze/zaoblených rohoch displeja -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <!-- Farba lišty prehliadača v telefóne (aby splývala s pozadím). -->
+  <meta name="theme-color" content="#0f1115">
+  <title>WagglePlay – Ovládač</title>
+  <link rel="stylesheet" href="controller.css">
+</head>
+<body>
+  <!-- OBRAZOVKA 1: úvod. Zobrazí sa po otvorení stránky. -->
+  <section id="screen-start" class="screen">
+    <h1>WagglePlay</h1>
+    <!-- Kód relácie z adresy (?s=...) – doplní controller.js. -->
+    <p id="start-msg">Relácia <strong id="code">····</strong></p>
+    <!-- Tlačidlo je nutné: iPhone povolí senzory pohybu iba po ťuknutí používateľa. -->
+    <button id="btn-start" class="big">Pripojiť ovládač</button>
+    <!-- Chybová hláška – skrytá, kým nenastane chyba. -->
+    <p id="error" class="error" hidden></p>
+  </section>
+
+  <!-- OBRAZOVKA 2: samotný ovládač. Na začiatku skrytá (hidden). -->
+  <section id="screen-pad" class="screen" hidden>
+    <!-- Číslo hráča – doplní controller.js po pripojení. -->
+    <p class="player">Hráč <strong id="player-id"></strong></p>
+    <div class="buttons">
+      <!-- data-button = názov tlačidla, ktorý sa pošle konzole. Nové tlačidlo pridáš
+           jednoducho ďalším <button data-button="NAZOV">; controller.js ho obslúži automaticky. -->
+      <button data-button="A" class="btn-a">A</button>
+      <button data-button="B" class="btn-b">B</button>
+    </div>
+    <!-- Diagnostika: koľko pohybových paketov za sekundu telefón posiela. -->
+    <p id="rate" class="rate"></p>
+  </section>
+
+  <!-- Knižnica Socket.IO (posiela ju náš server) – musí byť pred controller.js. -->
+  <script src="/socket.io/socket.io.min.js"></script>
+  <script type="module" src="controller.js"></script>
+</body>
+</html>

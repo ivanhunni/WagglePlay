@@ -1,0 +1,11 @@
+# Súbory a priečinky, ktoré git ignoruje (nedostanú sa do repozitára).
+
+# Stiahnuté knižnice – dajú sa kedykoľvek obnoviť príkazom `npm install`.
+node_modules/
+
+# Vygenerovaný HTTPS certifikát a súkromný kľúč – sú špecifické pre tvoj počítač
+# a súkromný kľúč nemá byť nikdy zdieľaný.
+.certs/
+
+# Logy z behu aplikácie.
+*.log

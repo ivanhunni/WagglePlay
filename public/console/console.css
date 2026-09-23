@@ -1,0 +1,56 @@
+/* =============================================================================
+   console.css – vzhľad stránky konzoly.
+   ============================================================================= */
+
+/* :root = celý dokument. Tu sú definované premenné (začínajú --), ktoré sa používajú nižšie
+   cez var(--nazov). Zmenou hodnoty tu zmeníš farbu všade naraz. */
+:root {
+  color-scheme: dark; /* prehliadač použije tmavé verzie posuvníkov a formulárových prvkov */
+  --bg: #0f1115;      /* farba pozadia stránky */
+  --panel: #1a1d24;   /* farba panelov (QR a karty hráčov) */
+  --muted: #8b93a7;   /* tlmená farba pre menej dôležitý text */
+}
+
+/* Šírka prvku bude zahŕňať aj padding a rámik (ľahšie sa počítajú rozmery). */
+* { box-sizing: border-box; }
+
+/* Celá stránka: bez okrajov, systémové písmo, tmavé pozadie, svetlý text. */
+body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: #e8eaf0; }
+
+/* Horná lišta: prvky vedľa seba (flex), zvislo vycentrované, názov vľavo a stav vpravo. */
+header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 2rem; }
+h1 { margin: 0; font-size: 1.5rem; }        /* nadpis bez predvoleného okraja */
+.status { color: var(--muted); }            /* stavový text tlmenou farbou */
+
+/* Hlavná časť = mriežka s dvomi stĺpcami:
+   1. stĺpec (QR) široký 280–360 px, 2. stĺpec (hráči) zaberie zvyšok (1fr). gap = medzera. */
+main { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 2rem; padding: 0 2rem 2rem; }
+
+/* Panel s QR kódom: pozadie, zaoblené rohy, vnútorný okraj, text na stred. */
+.pairing { background: var(--panel); border-radius: 1rem; padding: 1.5rem; text-align: center; }
+/* Obrázok QR: max 320 px, vždy štvorec (aspect-ratio 1), biele pozadie kým sa nenačíta. */
+.pairing img { width: 100%; max-width: 320px; aspect-ratio: 1; border-radius: .5rem; background: #fff; }
+/* Kód relácie: písmo s rovnakou šírkou znakov, väčšie, s rozostupom medzi písmenami. */
+.code strong { font-family: ui-monospace, monospace; font-size: 1.5rem; letter-spacing: .2em; }
+/* Odkaz: malý, tlmený; dlhá adresa sa môže zalomiť kdekoľvek. */
+.url a { color: var(--muted); font-size: .8rem; word-break: break-all; }
+
+/* Zoznam hráčov: mriežka, kde sa vedľa seba zmestí toľko kariet (min. 220 px), koľko sa dá. */
+.players { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; align-content: start; }
+/* Karta hráča: horný pruh má farbu hráča – premennú --c nastavuje console.js. */
+.player { background: var(--panel); border-radius: 1rem; padding: 1rem; border-top: 4px solid var(--c); }
+/* Odpojený hráč je polopriehľadný. */
+.player.offline { opacity: .4; }
+.player h2 { margin: 0 0 .5rem; font-size: 1rem; }
+/* Textový výpis hodnôt senzorov. */
+.player pre { margin: 0; font-size: .8rem; color: var(--muted); }
+/* Náhľad náklonu: tmavý obdĺžnik, v ktorom sa pohybuje bodka. overflow: hidden = bodka nevyjde von. */
+.tilt { position: relative; height: 120px; margin: .75rem 0; border-radius: .5rem; background: #0b0d11; overflow: hidden; }
+/* Bodka: absolútne umiestnená (left/top mení console.js), 20×20 px,
+   záporný margin ju vycentruje na zadanú pozíciu, border-radius 50% = kruh. */
+.tilt .dot { position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px; border-radius: 50%; background: var(--c); }
+/* Keď hráč drží tlačidlo, karta dostane farebný obrys. */
+.player.pressed { outline: 2px solid var(--c); }
+
+/* Na úzkych obrazovkách (do 700 px) budú panely pod sebou namiesto vedľa seba. */
+@media (max-width: 700px) { main { grid-template-columns: 1fr; } }

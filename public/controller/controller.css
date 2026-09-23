@@ -1,0 +1,51 @@
+/* =============================================================================
+   controller.css – vzhľad ovládača v telefóne.
+   ============================================================================= */
+
+/* --c = farba hráča. Predvolene modrá; po pripojení ju controller.js prepíše farbou hráča. */
+:root { color-scheme: dark; --c: #3b82f6; }
+
+/* box-sizing: rozmery zahŕňajú padding aj rámik.
+   -webkit-tap-highlight-color: vypne sivý záblesk pri ťuknutí na mobiloch. */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+/* html aj body zaberú celú výšku displeja (aby sa obsah dal vycentrovať zvislo). */
+html, body { height: 100%; }
+
+body {
+  margin: 0; font-family: system-ui, sans-serif; background: #0f1115; color: #e8eaf0;
+  user-select: none; -webkit-user-select: none; /* pri držaní prsta sa neoznačuje text */
+  touch-action: none;                          /* vypne posúvanie a priblíženie gestami */
+  overscroll-behavior: none;                   /* vypne „odpruženie“ a obnovenie stránky potiahnutím nadol */
+}
+
+/* Obrazovka: celá výška, obsah pod sebou (column) vycentrovaný vodorovne aj zvislo.
+   env(safe-area-inset-...) = odsadenie od výrezu kamery a spodnej lišty na iPhone. */
+.screen {
+  height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;
+  padding: env(safe-area-inset-top) 1.5rem env(safe-area-inset-bottom);
+}
+/* Skrytá obrazovka sa nezobrazí vôbec (inak by display:flex vyššie prebil atribút hidden). */
+.screen[hidden] { display: none; }
+
+h1 { margin: 0; }
+/* Tlačidlá dedia písmo a farbu textu, nemajú rámik, kurzor je „ruka“. */
+button { font: inherit; color: inherit; border: 0; cursor: pointer; }
+/* Veľké tlačidlo „Pripojiť ovládač“ – oválne (border-radius 999px), vo farbe hráča. */
+.big { padding: 1rem 2rem; font-size: 1.2rem; border-radius: 999px; background: var(--c); }
+/* Chybová hláška červenou. */
+.error { color: #f87171; text-align: center; }
+.player { font-size: 1.2rem; margin: 0; }
+.player strong { color: var(--c); }  /* číslo hráča v jeho farbe */
+
+/* Tlačidlá A a B pod sebou s medzerou. */
+.buttons { display: flex; flex-direction: column; gap: 1.5rem; align-items: center; }
+/* Okrúhle tlačidlá s veľkým tučným písmenom. */
+.buttons button { border-radius: 50%; font-size: 2rem; font-weight: 700; }
+/* Veľkosť a farba jednotlivých tlačidiel – tu ich môžeš zväčšiť/zmenšiť. */
+.btn-a { width: 9rem; height: 9rem; background: var(--c); }
+.btn-b { width: 5.5rem; height: 5.5rem; background: #2a2f3a; }
+/* Vzhľad počas držania (triedu 'active' pridáva controller.js): jasnejšie a mierne zmenšené. */
+.buttons button.active { filter: brightness(1.3); transform: scale(.96); }
+/* Malý diagnostický text s počtom paketov za sekundu. */
+.rate { color: #8b93a7; font-size: .8rem; font-family: ui-monospace, monospace; }
