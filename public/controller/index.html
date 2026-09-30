@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- Stránka OVLÁDAČA – otvára sa v telefóne po naskenovaní QR kódu
      (https://<IP-počítača>:3443/controller/?s=KÓD).
-     Má dve „obrazovky“: úvodnú (tlačidlo Pripojiť) a ovládač (tlačidlá A a B).
+     Má dve „obrazovky“: úvodnú (tlačidlo Pripojiť) a ovládač (tlačidlá A, B a Stred).
      Naraz je viditeľná vždy iba jedna – prepína ich controller.js cez atribút `hidden`. -->
 <html lang="sk">
 <head>
@@ -32,13 +32,21 @@
   <!-- OBRAZOVKA 2: samotný ovládač. Na začiatku skrytá (hidden). -->
   <section id="screen-pad" class="screen" hidden>
     <!-- Číslo hráča – doplní controller.js po pripojení. -->
-    <p class="player">Hráč <strong id="player-id"></strong></p>
+    <p class="player">Hráč <strong id="player-id"></strong> · <span id="mode"></span></p>
     <div class="buttons">
       <!-- data-button = názov tlačidla, ktorý sa pošle konzole. Nové tlačidlo pridáš
            jednoducho ďalším <button data-button="NAZOV">; controller.js ho obslúži automaticky. -->
       <button data-button="A" class="btn-a">A</button>
       <button data-button="B" class="btn-b">B</button>
     </div>
+    <!-- „Stred“ = kalibrácia kurzora: namier telefón na stred obrazovky a ťukni.
+         Nemá data-button, lebo sa neposiela konzole – spracuje ho priamo telefón. -->
+    <!-- Systémové tlačidlá: Domov (pošle sa konzole ako tlačidlo HOME) a Stred. -->
+    <div class="system">
+      <button data-button="HOME" class="pill">⌂ Domov</button>
+      <button id="btn-center" class="pill center">⌖ Stred</button>
+    </div>
+    <p class="hint">Na výšku = kurzor · otoč na šírku = volant</p>
     <!-- Diagnostika: koľko pohybových paketov za sekundu telefón posiela. -->
     <p id="rate" class="rate"></p>
   </section>

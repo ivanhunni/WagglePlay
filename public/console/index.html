@@ -1,7 +1,9 @@
 <!doctype html>
 <!-- Stránka KONZOLY – otvára sa na PC (http://localhost:3000/console/).
-     Zobrazí QR kód na pripojenie telefónov a zoznam pripojených hráčov
-     s náhľadom pohybu. Neskôr sa tu bude vykresľovať hra. -->
+     Má dve „obrazovky“:
+       1. domovská – mriežka hier (ako kanály na Wii), QR kód na pripojenie, sloty hráčov
+       2. hra – prázdna plocha #stage, do ktorej sa načíta zvolená hra (public/games/<id>/game.js)
+     Nad oboma je vrstva s kurzormi hráčov. Prepínanie rieši console.js. -->
 <html lang="sk"> <!-- lang = jazyk stránky (pre čítačky obrazovky a kontrolu pravopisu) -->
 <head>
   <!-- Kódovanie znakov – nutné pre správne zobrazenie diakritiky (č, ž, ...). -->
@@ -14,27 +16,44 @@
   <link rel="stylesheet" href="console.css">
 </head>
 <body>
-  <!-- Horná lišta: názov a stavový text (ten mení console.js). -->
-  <header>
-    <h1>WagglePlay</h1>
-    <span id="status" class="status">Pripájam…</span>
-  </header>
+  <!-- ===== DOMOVSKÁ OBRAZOVKA ===== -->
+  <div id="home" class="home">
+    <!-- Horná lišta: názov, stavový text (mení console.js) a hodiny. -->
+    <header class="topbar">
+      <h1>WagglePlay</h1>
+      <span id="status" class="status">Pripájam…</span>
+      <time id="clock" class="clock"></time>
+    </header>
 
-  <main>
-    <!-- Ľavý panel: párovanie telefónu. -->
-    <section class="pairing">
-      <!-- Sem console.js vloží obrázok QR kódu, ktorý pošle server. -->
-      <img id="qr" alt="QR kód na pripojenie ovládača">
-      <p>Naskenuj QR kód telefónom v rovnakej Wi-Fi sieti.</p>
-      <!-- Kód relácie (4 znaky). Kým nepríde zo servera, zobrazujú sa bodky. -->
-      <p class="code">Kód relácie: <strong id="code">····</strong></p>
-      <!-- Odkaz pre telefón aj ako text – ak by QR kód nešiel naskenovať. -->
-      <p class="url"><a id="join-url" target="_blank"></a></p>
-    </section>
+    <main>
+      <!-- Mriežka hier. console.js sem vloží dlaždicu za každú hru z games/games.js
+           a zvyšok doplní prázdnymi miestami. -->
+      <section id="channels" class="channels" aria-label="Hry"></section>
 
-    <!-- Pravý panel: karty hráčov. console.js sem pridáva kartu za každého hráča. -->
-    <section class="players" id="players"></section>
-  </main>
+      <!-- Pravý panel: párovanie telefónu. -->
+      <aside class="pairing">
+        <!-- Sem console.js vloží obrázok QR kódu, ktorý pošle server. -->
+        <img id="qr" alt="QR kód na pripojenie ovládača">
+        <p>Naskenuj QR kód telefónom v rovnakej Wi-Fi sieti.</p>
+        <!-- Kód relácie (4 znaky). Kým nepríde zo servera, zobrazujú sa bodky. -->
+        <p class="code">Kód relácie: <strong id="code">····</strong></p>
+        <!-- Odkaz pre telefón aj ako text – ak by QR kód nešiel naskenovať. -->
+        <p class="url"><a id="join-url" target="_blank"></a></p>
+      </aside>
+    </main>
+
+    <!-- Spodná lišta: popis hry pod kurzorom a štyri sloty hráčov. -->
+    <footer class="dock">
+      <p id="info" class="info">Namier telefón na hru a stlač A</p>
+      <div id="slots" class="slots"></div>
+    </footer>
+  </div>
+
+  <!-- ===== HRA ===== Na začiatku skrytá; console.js sem vloží obsah hry. -->
+  <section id="stage" class="stage" hidden></section>
+
+  <!-- Vrstva s kurzormi hráčov (nad všetkým, ale neprekáža klikaniu myšou). -->
+  <div id="cursors" class="cursors"></div>
 
   <!-- Knižnica Socket.IO pre prehliadač. Posiela ju náš server automaticky
        (vytvorí globálnu funkciu `io`, ktorú používa console.js). Musí byť načítaná skôr. -->

@@ -85,8 +85,8 @@ sequenceDiagram
 |---|---|---|---|
 | `console:create` | K → S | – (ack: `{code, joinUrl, qr}`) | spoľahlivá |
 | `controller:join` | T → S | `{code, playerId?}` (ack: `{ok, playerId, color}` / `{ok:false, error}`) | spoľahlivá |
-| `input:motion` | T → S → K | `{t, o:[α,β,γ], a:[x,y,z], r:[α,β,γ]}` + server pridá `p` | **volatile** |
-| `input:button` | T → S → K | `{button, pressed}` + `p` | spoľahlivá |
+| `input:motion` | T → S → K | `{t, o:[α,β,γ], a:[x,y,z], r:[α,β,γ], m, c?:[x,y,roll], s?}` + server pridá `p` | **volatile** |
+| `input:button` | T → S → K | `{button: A/B/HOME, pressed}` + `p` | spoľahlivá |
 | `feedback:vibrate` | K → S → T | `{playerId, pattern}` | spoľahlivá |
 | `player:joined` / `player:left` | S → K | `{playerId, color?}` | spoľahlivá |
 | `session:closed` | S → T | – | spoľahlivá |
@@ -98,10 +98,35 @@ sequenceDiagram
 - `a` – zrýchlenie vrátane gravitácie z `devicemotion` (m/s²) – vhodné na detekciu švihu/úderu.
 - `r` – uhlová rýchlosť z gyroskopu (°/s).
 - `t` – časová značka odosielateľa (na meranie latencie/jitteru).
+- `m` – režim ovládača (`pointer` / `wheel`), viď 3.3.
+- `c` – iba v režime `pointer`: kurzor `[x, y, roll]`, x a y od -1 do 1 (stred = 0, 0), roll v stupňoch.
+- `s` – iba v režime `wheel`: natočenie volantu od -1 (doľava) po 1 (doprava).
 
 Telefón **nevysiela pri každej udalosti senzora** (tie chodia nepravidelne, niekedy 100+ Hz), ale ukladá si posledné hodnoty a vzorkuje ich pevnou frekvenciou `MOTION_HZ = 60`. To dáva predvídateľnú záťaž siete.
 
-### 3.3 Výpadky spojenia
+### 3.3 Režimy ovládača (`public/controller/modes.js`)
+Telefón podľa toho, ako ho hráč drží, sám prepína medzi dvomi režimami a do paketu posiela už hotové hodnoty, takže hry nemusia počítať s uhlami.
+
+| Režim | Držanie | Výstup |
+|---|---|---|
+| **pointer** (Wii Remote) | na výšku, vrch mieri na obrazovku | kurzor `c = [x, y, roll]` |
+| **wheel** (Wii Wheel) | na šírku, displej k hráčovi | volant `s` |
+
+- **Rozpoznanie režimu:** zo smeru gravitácie (vypočítaného z `deviceorientation` β, γ – tie majú na iOS aj Androide rovnaké znamienka, akcelerometer nie). Keď je telefón otočený na bok viac ako ≈53°, prepne sa na volant; späť na kurzor pod ≈30° (hysterézia). Nová poloha musí vydržať 300 ms.
+- **Kurzor (laser):** poloha kurzora = smer, ktorým mieri vrch telefónu (vektor osi y z celej orientácie α, β, γ – nie priamo z uhlov, tie pri mierení „cez hlavu“ preskakujú). Rovnaký smer v miestnosti = vždy rovnaký bod na obrazovke, čo je nutné pre kreslenie. Zvislá os sa neposúva (drží ju gravitácia); vodorovná sa môže za dlhší čas mierne posunúť (bez kompasu nemá telefón pevný bod) – vtedy pomôže **⌖ Stred**.
+- **Mierka:** stupne na jednotku sú v oboch osiach rovnaké vzhľadom na pomer strán 16:9, takže nakreslený kruh ostane kruhom.
+- **Vyhladzovanie:** One Euro filter – pri pomalom pohybe silné (bez chvenia pri kreslení), pri rýchlom takmer žiadne (švih vo Fruit Ninja bez oneskorenia).
+- **Kalibrácia:** aktuálny smer sa stane stredom obrazovky pri každom prepnutí do režimu pointer a tlačidlom **⌖ Stred** na telefóne. Kurzor je obmedzený kúsok za okraj obrazovky; po návrate telefónu je späť presne tam, kam mieri.
+- **Volant:** uhol smeru gravitácie v rovine displeja, s mŕtvou zónou 3° a vyhladzovaním; ±60° = naplno.
+- Citlivosť a prahy sú konštanty na začiatku `modes.js`.
+
+### 3.4 Konzola a hry
+- **Domovská obrazovka** (`public/console/`): mriežka hier zo zoznamu `public/games/games.js`, QR panel a sloty hráčov. Každý telefón v režime pointer má na obrazovke kurzor; nabehnutie na hru = krátka vibrácia, **A** = spustenie. Funguje aj myš (klik) a Esc.
+- **Hra** je ES modul `public/games/<id>/game.js` s `export default function start(api)`. Konzola ho načíta dynamickým `import()` až pri spustení a vykreslí ho do plochy cez celé okno.
+- Hra dostáva vstupy cez `api.on('motion' | 'button' | 'join' | 'leave', …)` a stav hráčov v `api.players` (kurzor, volant, tlačidlá). Popis API: `public/games/README.md`.
+- Tlačidlo **⌂ Domov** na telefóne (alebo Esc) hru ukončí – konzola odhlási jej odbery, zavolá upratovaciu funkciu hry a vymaže plochu. Hra sa o tlačidle HOME nedozvie.
+
+### 3.5 Výpadky spojenia
 - **Telefón stratí spojenie:** konzola dostane `player:left`, slot ostane rezervovaný 15 s. Socket.IO sa sám znovu pripojí a telefón pošle `controller:join` s pôvodným `playerId` (uloženým v `sessionStorage`) → dostane rovnaký slot aj farbu.
 - **Konzola sa zatvorí:** relácia zanikne, telefóny dostanú `session:closed`.
 
@@ -121,9 +146,12 @@ WagglePlay/
 ├── shared/
 │   └── protocol.js          # názvy udalostí a konštanty (server + prehliadače)
 ├── public/
-│   ├── console/             # UI konzoly (PC)
-│   ├── controller/          # UI ovládača (telefón)
-│   └── games/               # jednotlivé hry (ďalšia fáza)
+│   ├── console/             # UI konzoly (PC): domovská obrazovka, kurzory, spúšťanie hier
+│   ├── controller/          # UI ovládača (telefón); modes.js = režimy kurzor/volant
+│   └── games/
+│       ├── games.js         # zoznam hier na domovskej obrazovke
+│       ├── README.md        # API pre hry
+│       └── <id>/game.js     # jednotlivé hry (test/ = test ovládačov)
 └── docs/ARCHITECTURE.md
 ```
 
@@ -134,7 +162,6 @@ WagglePlay/
 - Firewall na PC musí povoliť prichádzajúce spojenia na port 3443.
 
 ## 6. Ďalšie kroky
-1. Kalibrácia/„nulová poloha“ ovládača a vyhladzovanie dát (napr. komplementárny filter).
-2. Rozhranie pre hry v konzole (výber hry, API na odber vstupov).
-3. Prvá hra (napr. bowling alebo tenis využívajúci švih).
-4. Meranie latencie (ping/pong s `t`) a zobrazenie v konzole.
+1. Pomôcky pre hry: rýchlosť kurzora (detekcia švihu), „ťah“ pri držaní A (kreslenie).
+2. Prvá hra (napr. bowling alebo tenis využívajúci švih).
+3. Meranie latencie (ping/pong s `t`) a zobrazenie v konzole.

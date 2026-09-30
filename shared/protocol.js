@@ -34,7 +34,7 @@ export const EVENTS = Object.freeze({
   // Posiela sa ako „volatile“ – ak sa nestihne doručiť, zahodí sa (nechceme starý pohyb).
   INPUT_MOTION: 'input:motion',
 
-  // T → S → K: stlačenie/pustenie tlačidla. Dáta: { button: 'A' | 'B', pressed: true/false }
+  // T → S → K: stlačenie/pustenie tlačidla. Dáta: { button: BUTTONS.x, pressed: true/false }
   // Posiela sa spoľahlivo – stlačenie sa nesmie stratiť.
   INPUT_BUTTON: 'input:button',
 
@@ -52,6 +52,16 @@ export const EVENTS = Object.freeze({
   SESSION_CLOSED: 'session:closed',
 });
 
+// Tlačidlá ovládača (hodnota `button` v správe INPUT_BUTTON).
+//   A    – hlavné tlačidlo (výber v menu, akcia v hre)
+//   B    – vedľajšie tlačidlo
+//   HOME – návrat na domovskú obrazovku konzoly (hru ukončí konzola, nie hra sama)
+export const BUTTONS = Object.freeze({
+  A: 'A',
+  B: 'B',
+  HOME: 'HOME',
+});
+
 // Maximálny počet hráčov v jednej relácii. Ak ho zvýšiš, doplň aj farby nižšie.
 export const MAX_PLAYERS = 4;
 
@@ -62,6 +72,14 @@ export const PLAYER_COLORS = ['#3b82f6', '#ef4444', '#22c55e', '#eab308'];
 // Koľkokrát za sekundu posiela telefón pohybové dáta.
 // Vyššie číslo = plynulejší pohyb, ale viac dát v sieti a vyššia spotreba batérie.
 export const MOTION_HZ = 60;
+
+// Režimy ovládača. Telefón ich prepína sám podľa toho, ako ho hráč drží:
+//   POINTER – na výšku, vrch telefónu mieri na obrazovku (ako Wii Remote) → kurzor
+//   WHEEL   – na šírku, displej otočený k hráčovi (ako Wii Wheel) → volant
+export const MODES = Object.freeze({
+  POINTER: 'pointer',
+  WHEEL: 'wheel',
+});
 
 /**
  * MotionPacket – jeden balík pohybových dát z telefónu.
@@ -76,6 +94,11 @@ export const MOTION_HZ = 60;
  * @property {number[]} a – zrýchlenie vrátane gravitácie [x, y, z] v m/s²
  *                          (v pokoji na stole je z ≈ 9.8; pri švihu hodnoty prudko skočia)
  * @property {number[]} r – rýchlosť otáčania z gyroskopu [alpha, beta, gamma] v stupňoch za sekundu
+ * @property {string}   m – aktuálny režim ovládača: MODES.POINTER alebo MODES.WHEEL
+ * @property {number[]} c – kurzor (iba v režime POINTER) [x, y, roll]:
+ *                          x, y = poloha na obrazovke od -1 do 1 (0, 0 = stred; x doprava, y nadol)
+ *                          roll = otočenie zápästia v stupňoch (kladné = v smere hodinových ručičiek)
+ * @property {number}   s – natočenie volantu (iba v režime WHEEL) od -1 (naplno doľava) po 1 (naplno doprava)
  *
  * Server pred preposlaním do konzoly pridá ešte `p` = číslo hráča (playerId).
  */

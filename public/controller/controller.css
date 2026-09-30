@@ -49,3 +49,20 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; }
 .buttons button.active { filter: brightness(1.3); transform: scale(.96); }
 /* Malý diagnostický text s počtom paketov za sekundu. */
 .rate { color: #8b93a7; font-size: .8rem; font-family: ui-monospace, monospace; }
+
+/* Systémové tlačidlá „Domov“ a „Stred“ (kalibrácia kurzora) vedľa seba, pod nimi nápoveda. */
+.system { display: flex; gap: .75rem; }
+.pill { padding: .6rem 1.4rem; border-radius: 999px; background: #2a2f3a; font-size: 1rem; }
+.pill[hidden] { display: none; }
+.pill:active, .pill.active { filter: brightness(1.3); }
+.hint { margin: 0; color: #8b93a7; font-size: .85rem; text-align: center; }
+
+/* Stránka na šírku (telefón otočený a automatické otáčanie je zapnuté): tlačidlá vedľa seba
+   namiesto pod sebou a menšie medzery, aby sa všetko zmestilo. Palce ležia na A a B ako na volante.
+   Riadime sa orientáciou stránky, nie režimom – pri vypnutom otáčaní ostane rozloženie na výšku. */
+@media (orientation: landscape) {
+  .screen { gap: .75rem; }
+  .buttons { flex-direction: row; gap: 3rem; }
+  .btn-a { width: 7rem; height: 7rem; }
+  .btn-b { width: 5rem; height: 5rem; }
+}

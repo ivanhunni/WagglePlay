@@ -6,12 +6,15 @@
 //   2. po ťuknutí na „Pripojiť“ požiada o prístup k senzorom pohybu
 //   3. začne čítať gyroskop a akcelerometer
 //   4. pripojí sa na server a vstúpi do relácie
-//   5. 60× za sekundu posiela aktuálny pohyb, pri ťuknutí posiela tlačidlá
-//   6. vibruje, keď o to konzola požiada
+//   5. podľa držania telefónu prepína režim kurzor (na výšku) / volant (na šírku) – viď modes.js
+//   6. 60× za sekundu posiela aktuálny pohyb, pri ťuknutí posiela tlačidlá
+//   7. vibruje, keď o to konzola požiada
 // =============================================================================
 
 // Názvy správ a frekvencia posielania zo spoločného protokolu.
-import { EVENTS, MOTION_HZ } from '/shared/protocol.js';
+import { EVENTS, MOTION_HZ, MODES } from '/shared/protocol.js';
+// Prepočet senzorov na kurzor / volant.
+import { createModes } from './modes.js';
 
 // Skratka na hľadanie HTML prvku podľa id.
 const $ = (id) => document.getElementById(id);
@@ -36,6 +39,12 @@ const ERRORS = {
 // ktorých môže byť aj 100+ za sekundu a prichádzajú nepravidelne).
 //   o = orientácia [alpha, beta, gamma], a = zrýchlenie [x, y, z], r = rýchlosť otáčania
 const motion = { o: [0, 0, 0], a: [0, 0, 0], r: [0, 0, 0] };
+
+// Režimy kurzor/volant. Pri prepnutí režimu aktualizujeme nápis a krátko zavibrujeme.
+const modes = createModes((mode) => {
+  showMode(mode);
+  navigator.vibrate?.(30);
+});
 
 // Číslo hráča z predchádzajúceho pripojenia (ak sa stránka obnovila alebo vypadla Wi-Fi).
 // sessionStorage = malé úložisko v prehliadači, platné kým je karta otvorená.
@@ -76,6 +85,7 @@ function startSensors() {
   // Orientácia telefónu v priestore (v stupňoch). `?? 0` – ak hodnota chýba, použije sa 0.
   addEventListener('deviceorientation', (e) => {
     motion.o = [e.alpha ?? 0, e.beta ?? 0, e.gamma ?? 0];
+    modes.setOrientation(...motion.o, e.timeStamp);
   });
   // Pohyb telefónu: zrýchlenie (akcelerometer) a rýchlosť otáčania (gyroskop).
   addEventListener('devicemotion', (e) => {
@@ -129,7 +139,8 @@ function startSending() {
   sendTimer = setInterval(() => {
     // Pošleme čas + kópiu aktuálnych hodnôt senzorov (…motion rozbalí o, a, r).
     // volatile = ak sa paket nedá hneď odoslať, zahodí sa (nechceme posielať starý pohyb).
-    socket.volatile.emit(EVENTS.INPUT_MOTION, { t: performance.now(), ...motion });
+    // modes.read() pridá režim a kurzor (c) alebo volant (s).
+    socket.volatile.emit(EVENTS.INPUT_MOTION, { t: performance.now(), ...motion, ...modes.read() });
     sent++;
     // Raz za sekundu zobrazíme, koľko paketov sme poslali, a začneme počítať odznova.
     const now = performance.now();
@@ -161,10 +172,25 @@ for (const btn of document.querySelectorAll('[data-button]')) {
   btn.addEventListener('pointercancel', send(false)); // dotyk bol prerušený (napr. prišiel hovor)
 }
 
+// Tlačidlo „Stred“: hráč namieri telefón na stred obrazovky a ťukne → kurzor sa vycentruje.
+$('btn-center').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  modes.recenter();
+  navigator.vibrate?.(20);
+});
+
+// Zobrazí aktuálny režim na obrazovke telefónu.
+function showMode(mode) {
+  const wheel = mode === MODES.WHEEL;
+  $('mode').textContent = wheel ? 'Volant' : 'Kurzor';
+  $('btn-center').hidden = wheel; // v režime volantu nie je čo centrovať
+}
+
 // Prepne na obrazovku ovládača a nastaví farbu a číslo hráča.
 function showPad({ playerId, color }) {
   document.documentElement.style.setProperty('--c', color); // farba hráča pre celé CSS
   $('player-id').textContent = playerId;
+  showMode(modes.mode);
   $('screen-start').hidden = true;  // skryjeme úvod
   $('screen-pad').hidden = false;   // ukážeme ovládač
 }

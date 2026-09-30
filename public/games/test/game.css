@@ -1,0 +1,34 @@
+/* =============================================================================
+   games/test/game.css – vzhľad hry „Test ovládačov“.
+   Všetko je pod [data-game="test"], aby štýly neovplyvnili zvyšok konzoly.
+   ============================================================================= */
+
+[data-game="test"] { padding: 1.5rem 2rem; overflow: auto; }
+[data-game="test"] header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.5rem; }
+[data-game="test"] h1 { margin: 0; font-size: 1.5rem; }
+[data-game="test"] header p { margin: 0; color: var(--muted); }
+
+/* Zoznam hráčov: mriežka, kde sa vedľa seba zmestí toľko kariet (min. 260 px), koľko sa dá. */
+[data-game="test"] .players { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+/* Karta hráča: horný pruh má farbu hráča (--c). */
+[data-game="test"] .player { background: var(--panel); border-radius: 1rem; padding: 1rem; border-top: 4px solid var(--c); }
+[data-game="test"] .player.offline { opacity: .4; }
+[data-game="test"] .player.pressed { outline: 2px solid var(--c); }
+[data-game="test"] .player h2 { margin: 0 0 .5rem; font-size: 1rem; }
+[data-game="test"] .player pre { margin: 0; font-size: .8rem; color: var(--muted); }
+
+/* Náhľad pohybu: tmavý obdĺžnik 16:9, v ktorom sa zobrazí kurzor alebo volant. */
+[data-game="test"] .preview { position: relative; aspect-ratio: 16 / 9; margin: .75rem 0; border-radius: .5rem; background: #0b0d11; overflow: hidden; }
+[data-game="test"] .preview canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+[data-game="test"] .wheel .preview canvas { display: none; }
+/* Kurzor: kruh s „ručičkou“ hore, aby bolo vidno otočenie zápästia. */
+[data-game="test"] .preview .cursor { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px;
+  border-radius: 50%; border: 3px solid var(--c); }
+[data-game="test"] .preview .cursor::after { content: ''; position: absolute; left: 50%; top: -9px; width: 3px; height: 9px; margin-left: -1.5px; background: var(--c); }
+/* Volant: kruh s priečkou, v strede náhľadu. */
+[data-game="test"] .preview .wheel { display: none; position: absolute; left: 50%; top: 50%; width: 70px; height: 70px; margin: -35px;
+  border-radius: 50%; border: 6px solid var(--c);
+  background: linear-gradient(var(--c), var(--c)) center / 100% 6px no-repeat,
+              linear-gradient(var(--c), var(--c)) 50% 100% / 6px 50% no-repeat; }
+[data-game="test"] .player.wheel .cursor { display: none; }
+[data-game="test"] .player.wheel .wheel { display: block; }
